@@ -77,6 +77,9 @@ var mafiaKill = false;
 var mafiaKillCnt = 0;
 var mafiaKillReceived = new Map();
 
+/*******************
+socket.io event loop
+*******************/
 io.on('connection', (socket) => {
     var addedUser = false;
     console.log('client connected! socket.id : ' + socket.id);
