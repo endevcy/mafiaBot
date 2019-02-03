@@ -1,2 +1,2 @@
 # mafiaBot
-javascript mafia game bot
+javascript mafia game NPC
