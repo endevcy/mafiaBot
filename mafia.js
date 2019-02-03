@@ -462,7 +462,7 @@ function noticeDead(username, voteResult) {
         currentCitizenCnt--;
     }
     for (var i = 0; i < players.length; i++) {
-        io.sockets.connected[players[i].socketId].emit(emits.NOTICE_DEAD', {
+        io.sockets.connected[players[i].socketId].emit(emits.NOTICE_DEAD, {
             name: username,
             deadUser: deadUserRole,
             result: voteResult
