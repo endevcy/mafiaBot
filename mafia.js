@@ -39,11 +39,11 @@ let CONST_GUESS_MAFIA = '2';
 let CONST_LIVE = '1';
 let CONST_KILL = '2';
 
-//wait for last speak time
+//wait seconds for last speak time
 let lastSpeakTime = 3;
 
 
-//wait for next guess
+//wait seconds for next guess
 let guessWaitTime = 3;
 
 
@@ -277,13 +277,12 @@ function userJoined(socket, username) {
     };
     players.push(player);
 
-    // we store the username in the socket session for this client
     socket.username = username;
     ++numUsers;
     socket.emit('login', {
         numUsers: numUsers
     });
-    // echo globally (all clients) that a person has connected
+
     socket.broadcast.emit('user joined', {
         username: socket.username,
         numUsers: numUsers
