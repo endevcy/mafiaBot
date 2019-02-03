@@ -4,48 +4,13 @@ var path = require('path');
 var server = require('http').createServer(app);
 var io = require('socket.io')(server);
 var port = process.env.PORT || 3000;
-
+var config = require('./config.js');
 server.listen(port, () => {
     console.log('Server listening at port %d', port);
 });
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-/****
-const
-****/
-// Chatroom
-let maximumUserCount = 8;
-
-//mafia play for 8 people
-let mafiaCnt = 3;
-let citizenCnt = 3;
-let policerCnt = 1;
-let doctorCnt = 1;
-
-//role
-let CONST_MAFIA = 0;
-let CONST_CITIZEN = 1;
-let CONST_POLICER = 2;
-let CONST_DOCTOR = 3;
-
-//day or night
-let CONST_NIGHT = 0;
-let CONST_DAY = 1;
-
-//guess
-let CONST_GUESS_CITIZEN = '1';
-let CONST_GUESS_MAFIA = '2';
-
-//live or kill
-let CONST_LIVE = '1';
-let CONST_KILL = '2';
-
-//wait seconds for last speak time
-let lastSpeakTime = 3;
-
-//wait seconds for next guess
-let guessWaitTime = 3;
 
 /********
 variables
@@ -95,7 +60,7 @@ io.on('connection', (socket) => {
 
     socket.on('add user', (username) => {
         if (addedUser) return;
-        if (numUsers == maximumUserCount) {
+        if (numUsers == config.MAXIMUM_USER_COUNT) {
             socket.emit('full');
             socket.disconnect(true);
         } else {
@@ -124,11 +89,11 @@ function handleDay(socket, data) {
             var pointedUser = data.substring(1, data.length - 1);
             var user = getPlayer(socket.id);
             var currentTime = new Date().getTime();
-            if (currentTime - user.pointTime > guessWaitTime * 1000) {
+            if (currentTime - user.pointTime > config.GUESS_WAIT_TIME * 1000) {
                 mafiaPointTarget = pointedUser;
                 user.pointTime = currentTime;
-                mafiaPointReceived.set(CONST_GUESS_CITIZEN, 0);
-                mafiaPointReceived.set(CONST_GUESS_MAFIA, 0);
+                mafiaPointReceived.set(config.CONST_GUESS_CITIZEN, 0);
+                mafiaPointReceived.set(config.CONST_GUESS_MAFIA, 0);
                 pointMafia(pointedUser);
             } else {
                 socket.emit('need wait');
@@ -145,8 +110,8 @@ function handleDay(socket, data) {
         mafiaPointCnt++;
         if (mafiaPointCnt === aliveUser) {
 
-            var citizenGuessCnt = mafiaPointReceived.get(CONST_GUESS_CITIZEN);
-            var mafiaGuessCnt = mafiaPointReceived.get(CONST_GUESS_MAFIA);
+            var citizenGuessCnt = mafiaPointReceived.get(config.CONST_GUESS_CITIZEN);
+            var mafiaGuessCnt = mafiaPointReceived.get(config.CONST_GUESS_MAFIA);
 
             var guessResult = {
                 mafiaResult: mafiaGuessCnt,
@@ -167,8 +132,8 @@ function handleDay(socket, data) {
         thumbUpDownCnt++;
         if (thumbUpDownCnt === aliveUser) {
 
-            var liveCnt = thumbUpDownReceived.get(CONST_LIVE);
-            var killCnt = thumbUpDownReceived.get(CONST_KILL);
+            var liveCnt = thumbUpDownReceived.get(config.CONST_LIVE);
+            var killCnt = thumbUpDownReceived.get(config.CONST_KILL);
 
             var voteResult = {
                 liveResult: liveCnt,
@@ -194,9 +159,9 @@ function handleDay(socket, data) {
 }
 
 function handleNight(socket, data) {
-    if (getRole(socket.username) == CONST_CITIZEN) {
+    if (getRole(socket.username) == config.CONST_CITIZEN) {
         nightSleep(socket);
-    } else if (getRole(socket.username) == CONST_DOCTOR) {
+    } else if (getRole(socket.username) == config.CONST_DOCTOR) {
         if (doctorChance) {
             if (data.startsWith('/')) {
                 doctorSaveUser = data.substring(1);
@@ -207,13 +172,13 @@ function handleNight(socket, data) {
         } else {
             ;
         }
-    } else if (getRole(socket.username) == CONST_POLICER) {
+    } else if (getRole(socket.username) == config.CONST_POLICER) {
         if (policeChance) {
             if (data.startsWith('/')) {
                 var policeCheckUser = data.substring(1);
                 var policeCheckUserRole = '시민';
 
-                if (getRole(policeCheckUser) == CONST_MAFIA) {
+                if (getRole(policeCheckUser) == config.CONST_MAFIA) {
                     policeCheckUserRole = '마피아';
                 }
                 policeChance = false;
@@ -296,7 +261,7 @@ function userJoined(socket, username) {
         numUsers: numUsers
     });
 
-    if (!gameisOn && numUsers == maximumUserCount) {
+    if (!gameisOn && numUsers == config.MAXIMUM_USER_COUNT) {
         (function(s) {
             setTimeout(function() {
                 startGame(s);
@@ -318,14 +283,14 @@ function startGame(socket) {
 function setRoles() {
 
     console.log('setRoles');
-    var roles = [CONST_MAFIA, CONST_MAFIA, CONST_MAFIA, CONST_CITIZEN, CONST_CITIZEN, CONST_CITIZEN, CONST_POLICER, CONST_DOCTOR];
+    var roles = [config.CONST_MAFIA, config.CONST_MAFIA, config.CONST_MAFIA, config.CONST_CITIZEN, config.CONST_CITIZEN, config.CONST_CITIZEN, config.CONST_POLICER, config.CONST_DOCTOR];
     var shuffledRole = shuffle(roles);
 
     var mafiaMembers = '';
     var mafias = [];
     for (var i = 0; i < players.length; i++) {
         players[i].role = shuffledRole[i];
-        if (shuffledRole[i] == CONST_MAFIA) {
+        if (shuffledRole[i] == config.CONST_MAFIA) {
             mafias.push(players[i]);
             mafiaMembers = mafiaMembers + players[i].name + ',';
         }
@@ -373,7 +338,7 @@ function shuffle(array) {
 
 
 function becomeNight() {
-    dayOrNight = CONST_NIGHT;
+    dayOrNight = config.CONST_NIGHT;
 
     policeChance = true;
     doctorChance = true;
@@ -385,7 +350,7 @@ function becomeNight() {
 }
 
 function becomeDay(nightReport) {
-    dayOrNight = CONST_DAY;
+    dayOrNight = config.CONST_DAY;
 
     for (var i = 0; i < players.length; i++) {
         io.sockets.connected[players[i].socketId].emit('become day', {
@@ -403,7 +368,7 @@ function becomeDay(nightReport) {
         }
         aliveUser--;
         deadUser.isAlive = false;
-        if (deadUser.role == CONST_MAFIA) {
+        if (deadUser.role == config.CONST_MAFIA) {
             deadUserRole = '마피아';
             currentMafiaCnt--;
         } else {
@@ -438,14 +403,14 @@ function lastSpeak(mafiaPointTarget, guessResult) {
         thumbUpDown = true;
         thumbUpDownCnt = 0;
         thumbUpDownTarget = mafiaPointTarget;
-        thumbUpDownReceived.set(CONST_LIVE, 0);
-        thumbUpDownReceived.set(CONST_KILL, 0);
+        thumbUpDownReceived.set(config.CONST_LIVE, 0);
+        thumbUpDownReceived.set(config.CONST_KILL, 0);
         for (var i = 0; i < players.length; i++) {
             io.sockets.connected[players[i].socketId].emit('thumb updown', {
                 lastSpeakUser: mafiaPointTarget
             });
         }
-    }, lastSpeakTime * 1000);
+    }, config.LAST_SPEAK_TIME * 1000);
 }
 
 function pointMafia(pointedUser) {
@@ -488,7 +453,7 @@ function noticeDead(username, voteResult) {
     }
     aliveUser--;
     deadUser.isAlive = false;
-    if (deadUser.role == CONST_MAFIA) {
+    if (deadUser.role == config.CONST_MAFIA) {
         deadUserRole = '마피아';
         currentMafiaCnt--;
     } else {
@@ -535,7 +500,7 @@ function guessFail(guessResult) {
 
 
 function isNight() {
-    if (dayOrNight == CONST_NIGHT) {
+    if (dayOrNight == config.CONST_NIGHT) {
         return true;
     } else {
         return false;
