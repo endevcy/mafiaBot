@@ -285,8 +285,8 @@ function startGame(socket) {
 function setRoles() {
 
     console.log('setRoles');
-    var roles = [roles.CONST_MAFIA, roles.CONST_MAFIA, roles.CONST_MAFIA, roles.CONST_CITIZEN, roles.CONST_CITIZEN, roles.CONST_CITIZEN, roles.CONST_POLICER, roles.CONST_DOCTOR];
-    var shuffledRole = shuffle(roles);
+    var rolesArray = [roles.CONST_MAFIA, roles.CONST_MAFIA, roles.CONST_MAFIA, roles.CONST_CITIZEN, roles.CONST_CITIZEN, roles.CONST_CITIZEN, roles.CONST_POLICER, roles.CONST_DOCTOR];
+    var shuffledRole = shuffle(rolesArray);
 
     var mafiaMembers = '';
     var mafias = [];
