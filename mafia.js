@@ -71,6 +71,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('disconnect', () => {
+
         if (addedUser) {
             --numUsers;
             userLeft(socket);
@@ -234,7 +235,8 @@ function handleNight(socket, data) {
 }
 
 function userLeft(socket) {
-    console.log('disconnect  [' + socket.id + ']');
+  var currentTime = new Date().getTime();
+    console.log('disconnect  [' + socket.id + '] : '+currentTime);
     socket.broadcast.emit(emits.USER_LEFT, {
         username: socket.username,
         numUsers: numUsers
@@ -242,7 +244,8 @@ function userLeft(socket) {
 }
 
 function userJoined(socket, username) {
-    console.log('add user from  [' + socket.id + ']');
+  var currentTime = new Date().getTime();
+    console.log('add user from  [' + socket.id + '] : '+currentTime);
     var player = {
         role: -1,
         socketId: socket.id,
