@@ -110,7 +110,7 @@ function handleDay(socket, data) {
         var user = getPlayer(socket.id);
         var result = data.substring(1);
         if (!validateResult(result)) {
-          invalidVote(socket);
+            invalidVote(socket);
         } else {
 
             if (typeof mafiaPointReceived.get(result) !== 'undefined') {
@@ -145,27 +145,31 @@ function handleDay(socket, data) {
         }
     } else if (data.startsWith('/') && thumbUpDown) {
         var result = data.substring(1);
-        thumbUpDownReceived.set(result, thumbUpDownReceived.get(result) + 1);
-        thumbUpDownCnt++;
-        if (thumbUpDownCnt === aliveUser) {
+        if (!validateKill(result)) {
+            invalidKill(socket);
+        } else {
+            thumbUpDownReceived.set(result, thumbUpDownReceived.get(result) + 1);
+            thumbUpDownCnt++;
+            if (thumbUpDownCnt === aliveUser) {
 
-            var liveCnt = thumbUpDownReceived.get(config.CONST_LIVE);
-            var killCnt = thumbUpDownReceived.get(config.CONST_KILL);
+                var liveCnt = thumbUpDownReceived.get(config.CONST_LIVE);
+                var killCnt = thumbUpDownReceived.get(config.CONST_KILL);
 
-            var voteResult = {
-                liveResult: liveCnt,
-                killResult: killCnt
-            };
-            if (killCnt > liveCnt) {
-                noticeDead(thumbUpDownTarget, voteResult);
-            } else {
-                noticeAlive(thumbUpDownTarget, voteResult);
+                var voteResult = {
+                    liveResult: liveCnt,
+                    killResult: killCnt
+                };
+                if (killCnt > liveCnt) {
+                    noticeDead(thumbUpDownTarget, voteResult);
+                } else {
+                    noticeAlive(thumbUpDownTarget, voteResult);
+                }
+                thumbUpDown = false;
+                mafiaPoint = false;
+                thumbUpDownCnt = 0;
+                thumbUpDownTarget = '';
+                mafiaPointTarget = '';
             }
-            thumbUpDown = false;
-            mafiaPoint = false;
-            thumbUpDownCnt = 0;
-            thumbUpDownTarget = '';
-            mafiaPointTarget = '';
         }
     } else {
         socket.broadcast.emit(emits.NEW_MESSAGE, {
@@ -460,6 +464,15 @@ function validateResult(result) {
     }
 }
 
+function validateKill(result) {
+    if (result == config.CONST_KILL || result == config.CONST_LIVE) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+
 function getPlayer(socketId) {
     for (var i = 0; i < players.length; i++) {
         if (players[i].socketId == socketId) {
@@ -588,4 +601,8 @@ function nonExistUser(socket) {
 
 function invalidVote(socket) {
     socket.emit(emits.INVALID_VOTE);
+}
+
+function invalidKill(socket){
+  socket.emit(emits.INVALID_KILL);
 }

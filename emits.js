@@ -26,4 +26,5 @@ module.exports = {
     USER_NON_EXIST: 'user nonexist',
     VOTE_FEEDBACK: 'vote feedback',
     INVALID_VOTE: 'invalid vote',
+    INVALID_KILL: 'invalid kill'
 };
