@@ -1,3 +1,5 @@
+var config = require('../config.js');
+
 //role
 let CONST_MAFIA = 0;
 let CONST_CITIZEN = 1;
@@ -366,12 +368,25 @@ $(function() {
         }else{
           voted = '마피아라고';
         }
-        log('다수결에 의해 마피아 표결 진행에 성공하였습니다.');
         log(data.voterName + ' 님이 ' + data.pointedUserName + ' 님을 '+voted + ' 투표 하였습니다.');
         log('현재까지 투표 결과 입니다.');
         log('마피아라고 생각함 : '+data.currentMafiaGuess);
         log('마피아가 아니라고 생각함 : '+data.currentCitizenGuess);
     });
+
+    socket.on('kill feedback', (data) => {
+        var voted = '';
+        if(data.vote==config.CONST_KILL){
+          voted = '죽이는데';
+        }else{
+          voted = '살리는데';
+        }
+        log(data.voterName + ' 님이 ' + data.pointedUserName + ' 님을 '+voted + ' 투표 하였습니다.');
+        log('현재까지 투표 결과 입니다.');
+        log('죽인다 : '+data.currentKill);
+        log('살린다 : '+data.currentLive);
+    });
+
 
 
     socket.on('thumb updown', (data) => {

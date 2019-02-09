@@ -144,16 +144,21 @@ function handleDay(socket, data) {
             }
         }
     } else if (data.startsWith('/') && thumbUpDown) {
+        var user = getPlayer(socket.id);
         var result = data.substring(1);
         if (!validateKill(result)) {
             invalidKill(socket);
         } else {
             thumbUpDownReceived.set(result, thumbUpDownReceived.get(result) + 1);
             thumbUpDownCnt++;
-            if (thumbUpDownCnt === aliveUser) {
 
-                var liveCnt = thumbUpDownReceived.get(config.CONST_LIVE);
-                var killCnt = thumbUpDownReceived.get(config.CONST_KILL);
+
+            var liveCnt = thumbUpDownReceived.get(config.CONST_LIVE);
+            var killCnt = thumbUpDownReceived.get(config.CONST_KILL);
+
+            killFeedback(user.name, thumbUpDownTarget, result, liveCnt, killCnt);
+
+            if (thumbUpDownCnt === aliveUser) {
 
                 var voteResult = {
                     liveResult: liveCnt,
@@ -544,6 +549,18 @@ function voteFeedback(voter, pointedUser, vote, citizenGuessCnt, mafiaGuessCnt) 
     }
 }
 
+function killFeedback(voter, thumbUpDownTarget, result, liveCnt, killCnt){
+  for (var i = 0; i < players.length; i++) {
+      io.sockets.connected[players[i].socketId].emit(emits.KILL_FEEDBACK, {
+          voterName: voter,
+          pointedUserName: thumbUpDownTarget,
+          vote: result,
+          currentLive: liveCnt,
+          currentKill: killCnt
+      });
+  }
+}
+
 function noticeAlive(username, voteResult) {
     for (var i = 0; i < players.length; i++) {
         io.sockets.connected[players[i].socketId].emit(emits.NOTICE_ALIVE, {
@@ -603,6 +620,6 @@ function invalidVote(socket) {
     socket.emit(emits.INVALID_VOTE);
 }
 
-function invalidKill(socket){
-  socket.emit(emits.INVALID_KILL);
+function invalidKill(socket) {
+    socket.emit(emits.INVALID_KILL);
 }

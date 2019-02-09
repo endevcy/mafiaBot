@@ -25,6 +25,7 @@ module.exports = {
     HELP_MANUAL: 'help  manual',
     USER_NON_EXIST: 'user nonexist',
     VOTE_FEEDBACK: 'vote feedback',
+    KILL_FEEDBACK: 'kill feedback',
     INVALID_VOTE: 'invalid vote',
     INVALID_KILL: 'invalid kill'
 };
