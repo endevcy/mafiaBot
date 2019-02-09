@@ -133,9 +133,9 @@ function handleDay(socket, data) {
                     mafiaResult: mafiaGuessCnt,
                     citizenResult: citizenGuessCnt
                 };
+                mafiaPointCnt = 0;
                 if (mafiaGuessCnt >= citizenGuessCnt) {
                     lastSpeak(mafiaPointTarget, guessResult);
-                    mafiaPointCnt = 0;
                 } else {
                     mafiaPoint = false;
                     mafiaPointTarget = '';
@@ -248,7 +248,7 @@ function handleNight(socket, data) {
                                 mafiaKillingUser = key;
                             }
                         }
-                        mafiaKill = false;
+
                         var nightReport;
                         if (mafiaKillingUser == doctorSaveUser) {
                             nightReport = {
@@ -260,6 +260,9 @@ function handleNight(socket, data) {
                                 who: mafiaKillingUser
                             };
                         }
+                        mafiaKill = false;
+                        mafiaKillCnt = 0;
+                        mafiaKillReceived = new Map();
                         becomeDay(nightReport);
                     }
                 }

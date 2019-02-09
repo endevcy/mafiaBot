@@ -388,8 +388,8 @@ $(function() {
         }
         log(data.voterName + ' 님이 ' + data.pointedUserName + ' 님을 '+voted + ' 투표 하였습니다.');
         log('현재까지 투표 결과 입니다.');
-        log('죽인다 : '+data.currentKill);
         log('살린다 : '+data.currentLive);
+        log('죽인다 : '+data.currentKill);
     });
 
 
