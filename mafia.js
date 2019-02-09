@@ -90,16 +90,20 @@ function handleDay(socket, data) {
             socket.emit(emits.NEED_WAIT);
         } else {
             var pointedUser = data.substring(1, data.length - 1);
-            var user = getPlayer(socket.id);
-            var currentTime = new Date().getTime();
-            if (currentTime - user.pointTime > config.GUESS_WAIT_TIME * 1000) {
-                mafiaPointTarget = pointedUser;
-                user.pointTime = currentTime;
-                mafiaPointReceived.set(config.CONST_GUESS_CITIZEN, 0);
-                mafiaPointReceived.set(config.CONST_GUESS_MAFIA, 0);
-                pointMafia(socket.username, pointedUser);
+            if (!checkExistUser(pointedUser)) {
+                nonExistUser(socket);
             } else {
-                socket.emit(emits.NEED_WAIT);
+                var user = getPlayer(socket.id);
+                var currentTime = new Date().getTime();
+                if (currentTime - user.pointTime > config.GUESS_WAIT_TIME * 1000) {
+                    mafiaPointTarget = pointedUser;
+                    user.pointTime = currentTime;
+                    mafiaPointReceived.set(config.CONST_GUESS_CITIZEN, 0);
+                    mafiaPointReceived.set(config.CONST_GUESS_MAFIA, 0);
+                    pointMafia(user.name, pointedUser);
+                } else {
+                    socket.emit(emits.NEED_WAIT);
+                }
             }
         }
     } else if (data.startsWith('/') && mafiaPoint && !thumbUpDown) {
@@ -429,6 +433,15 @@ function pointMafia(pointer, pointedUser) {
     }
 }
 
+function checkExistUser(username) {
+    for (var i = 0; i < players.length; i++) {
+        if (players[i].name == username) {
+            return true;
+        }
+    }
+    return false;
+}
+
 function getPlayer(socketId) {
     for (var i = 0; i < players.length; i++) {
         if (players[i].socketId == socketId) {
@@ -535,4 +548,8 @@ function policeConfirm(socket, policeCheckUserRole) {
 
 function sendHelpManual(socket) {
     socket.emit(emits.HELP_MANUAL);
+}
+
+function nonExistUser(socket) {
+    socket.emit(emits.USER_NON_EXIST);
 }

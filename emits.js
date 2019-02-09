@@ -22,5 +22,6 @@ module.exports = {
     STATUS: 'status',
     NOT_ALLOWED: 'not allowed',
     POLICE_CONFIRM: 'police confirm',
-    HELP_MANUAL: 'help  manual'
+    HELP_MANUAL: 'help  manual',
+    USER_NON_EXIST: 'user nonexist',
 };

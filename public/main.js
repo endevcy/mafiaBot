@@ -397,6 +397,9 @@ $(function() {
         log('시민일 것이다 :' + data.result.citizenResult);
     });
 
+    socket.on('user nonexist', () => {
+        log('존재하지 않는 사용자 입니다.');
+    });
 
     socket.on('mafia win', () => {
         log('마피아의 승리로 게임이 종료되었습니다.');
