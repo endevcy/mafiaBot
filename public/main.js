@@ -351,9 +351,9 @@ $(function() {
     socket.on('become day', (data) => {
         log('낮이 되었습니다.');
         if (data.report.isSomeoneDead) {
-            log('밤에 ' + data.report.who + '님이 죽었습니다.');
+            log('지난밤 ' + data.report.who + '님이 죽었습니다.');
         } else {
-            log('밤에 죽은 사람이 없습니다.');
+            log('지난밤 죽은 사람이 없습니다.');
         }
     });
 
@@ -361,8 +361,8 @@ $(function() {
     socket.on('point mafia', (data) => {
         log(data.pointerName + ' 님께서 ' + data.pointedUserName + ' 님을 마피아로 지목하였습니다. ' + data.pointedUserName + ' 님을 어떻게 생각하는지 알려주세요');
         log('다수결에 부쳐 과반 이상 마피아라고 생각하면 최후의 변론을 하게 됩니다.');
-        log('/1 : 마피아라고 생각함');
-        log('/2 : 마피아가 아니라고 생각함');
+        log('/1 : 마피아가 아니라고 생각함');
+        log('/2 : 마피아라고 생각함');
     });
 
 
@@ -395,42 +395,45 @@ $(function() {
 
 
     socket.on('thumb updown', (data) => {
+        log('다수결 결과에 의해 최종 투표를 하겠습니다.');
         log(data.lastSpeakUser + ' 를 살릴지 죽일지 투표 해 주세요.');
+        log('/1 : 살린다');
+        log('/2 : 죽인다');
     });
-
 
     socket.on('last speak', (data) => {
         log('1분 후 살리기/죽이기 투표가 진행됩니다.');
         log(data.lastSpeakUser + ' 님은 최후의 변론을 해주세요.');
+        log('최후의 변론 동안 다른 플레이어는 말을 할 수 없습니다.');
     });
 
-
     socket.on('notice alive', (data) => {
+        log('살리기/죽이기 투표 최종 결과를 발표합니다.');
         log('살리자 :' + data.result.liveResult);
         log('죽이자 :' + data.result.killResult);
         log(data.aliveUser + ' 님이 투표 결과 살았습니다.');
+        log('다시 마피아를 찾아주세요.');
     });
 
-
     socket.on('notice dead', (data) => {
+        log('살리기/죽이기 투표 최종 결과를 발표합니다.');
         log('살리자 :' + data.result.liveResult);
         log('죽이자 :' + data.result.killResult);
         log(data.deadUser + ' 인 ' + data.name + ' 님이 투표 결과 죽었습니다.');
     });
 
-
-
     socket.on('guess fail', (data) => {
-        log('다수결에 의해 마피아 표결 진행에 실패하였습니다.');
+        log('다수결 최종 결과를 발표합니다.');
         log('마피아일 것이다 :' + data.result.mafiaResult);
         log('시민일 것이다 :' + data.result.citizenResult);
+        log('마피아 표결 진행에 실패하였습니다. 다시 마피아를 찾아주세요.');
     });
 
-
     socket.on('guess ok', (data) => {
-        log('다수결에 의해 마피아 표결 진행에 성공하였습니다.');
+        log('다수결 최종 결과를 발표합니다.');
         log('마피아일 것이다 :' + data.result.mafiaResult);
         log('시민일 것이다 :' + data.result.citizenResult);
+        log('마피아 표결 진행에 성공하였습니다.');
     });
 
     socket.on('user nonexist', () => {
@@ -439,8 +442,8 @@ $(function() {
 
     socket.on('invalid vote', () => {
         log('투표 입력에 오류가 있습니다. 아래와 같이 입력해주세요.');
-        log('/1 : 마피아라고 생각함');
-        log('/2 : 마피아가 아니라고 생각함');
+        log('/1 : 마피아가 아니라고 생각함');
+        log('/2 : 마피아라고 생각함');
     });
 
     socket.on('invalid kill', () => {
@@ -448,6 +451,26 @@ $(function() {
         log('/1 : 살린다');
         log('/2 : 죽인다');
     });
+
+    socket.on('doctor work', () => {
+        log('의사는 밤사이 한명을 지정하여 살릴 수 있습니다.');
+        log('살릴 플레이어를 아래와 같이 입력해주세요.');
+        log('/닉네임');
+    });
+
+    socket.on('police work', () => {
+      log('경찰은 밤사이 한명을 지정하여 마피아인지 확인할 수 있습니다.');
+      log('확인하고 싶은 플레이어를 아래와 같이 입력해주세요.');
+      log('/닉네임');
+    });
+
+    socket.on('mafia work', () => {
+      log('마피아는 밤사이 한명을 지정하여 죽일 수 있습니다.');
+      log('죽일 플레이어를 아래와 같이 입력해주세요.');
+      log('현재는 마피아들끼리 서로 다른 닉네임을 지정할 경우 다수결에 의해 결정됩니다.');
+      log('/닉네임');
+    });
+
 
     socket.on('mafia win', () => {
         log('마피아의 승리로 게임이 종료되었습니다.');

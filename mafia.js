@@ -532,6 +532,9 @@ function noticeDead(username, voteResult) {
         }
     } else {
         becomeNight();
+        noticeDoctor();
+        noticePolice();
+        noticeMafia();
     }
 }
 
@@ -607,6 +610,35 @@ function policeConfirm(socket, policeCheckUserRole) {
         role: policeCheckUserRole
     });
 }
+
+
+function noticeDoctor(){
+  for (var i = 0; i < players.length; i++) {
+      if(players[i].role == roles.CONST_DOCTOR){
+        io.sockets.connected[players[i].socketId].emit(emits.DOCTOR_WORK);
+      }
+  }
+
+}
+
+function noticePolice(){
+
+  for (var i = 0; i < players.length; i++) {
+      if(players[i].role == roles.CONST_POLICER){
+        io.sockets.connected[players[i].socketId].emit(emits.POLICE_WORK);
+      }
+  }
+}
+
+function noticeMafia(){
+  for (var i = 0; i < players.length; i++) {
+      if(players[i].role == roles.CONST_MAFIA){
+        io.sockets.connected[players[i].socketId].emit(emits.MAFIA_WORK);
+      }
+  }
+}
+
+
 
 function sendHelpManual(socket) {
     socket.emit(emits.HELP_MANUAL);

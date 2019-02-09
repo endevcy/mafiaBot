@@ -27,5 +27,8 @@ module.exports = {
     VOTE_FEEDBACK: 'vote feedback',
     KILL_FEEDBACK: 'kill feedback',
     INVALID_VOTE: 'invalid vote',
-    INVALID_KILL: 'invalid kill'
+    INVALID_KILL: 'invalid kill',
+    DOCTOR_WORK: 'doctor work',
+    POLICE_WORK: 'police work',
+    MAFIA_WORK: 'mafia work'
 };
