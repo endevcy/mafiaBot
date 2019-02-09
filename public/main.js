@@ -351,7 +351,7 @@ $(function() {
     socket.on('become day', (data) => {
         log('낮이 되었습니다.');
         if (data.report.isSomeoneDead) {
-            log('지난밤 ' + data.report.who + '님이 죽었습니다.');
+            log('지난밤 선량한 시민 ' + data.report.who + '님이 죽었습니다.');
         } else {
             log('지난밤 죽은 사람이 없습니다.');
         }
