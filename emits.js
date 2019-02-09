@@ -24,4 +24,5 @@ module.exports = {
     POLICE_CONFIRM: 'police confirm',
     HELP_MANUAL: 'help  manual',
     USER_NON_EXIST: 'user nonexist',
+    VOTE_FEEDBACK: 'vote feedback'
 };

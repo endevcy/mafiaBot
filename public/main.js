@@ -359,6 +359,21 @@ $(function() {
     });
 
 
+    socket.on('vote feedback', (data) => {
+        var voted = '';
+        if(data.vote==config.CONST_GUESS_CITIZEN){
+          voted = '마피아가 아니라고';
+        }else{
+          voted = '마피아라고';
+        }
+        log('다수결에 의해 마피아 표결 진행에 성공하였습니다.');
+        log(data.voterName + ' 님이 ' + data.pointedUserName + ' 님을 '+voted + ' 투표 하였습니다.');
+        log('현재까지 투표 결과 입니다.');
+        log('마피아라고 생각함 : '+data.currentMafiaGuess);
+        log('마피아가 아니라고 생각함 : '+data.currentCitizenGuess);
+    });
+
+
     socket.on('thumb updown', (data) => {
         log(data.lastSpeakUser + ' 를 살릴지 죽일지 투표 해 주세요.');
     });
@@ -382,6 +397,7 @@ $(function() {
         log('죽이자 :' + data.result.killResult);
         log(data.deadUser + ' 인 ' + data.name + ' 님이 투표 결과 죽었습니다.');
     });
+
 
 
     socket.on('guess fail', (data) => {
