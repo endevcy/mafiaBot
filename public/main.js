@@ -452,22 +452,25 @@ $(function() {
         log('/2 : 죽인다');
     });
 
-    socket.on('doctor work', () => {
+    socket.on('doctor work', (data) => {
         log('의사는 밤사이 한명을 지정하여 살릴 수 있습니다.');
+        log('현재 살아있는 플레이어는 ' + data.aliveNames + '입니다.');
         log('살릴 플레이어를 아래와 같이 입력해주세요.');
         log('/닉네임');
     });
 
-    socket.on('police work', () => {
+    socket.on('police work', (data) => {
       log('경찰은 밤사이 한명을 지정하여 마피아인지 확인할 수 있습니다.');
+      log('현재 살아있는 플레이어는 ' + data.aliveNames + '입니다.');
       log('확인하고 싶은 플레이어를 아래와 같이 입력해주세요.');
       log('/닉네임');
     });
 
-    socket.on('mafia work', () => {
+    socket.on('mafia work', (data) => {
       log('마피아는 밤사이 한명을 지정하여 죽일 수 있습니다.');
-      log('죽일 플레이어를 아래와 같이 입력해주세요.');
+      log('현재 살아있는 플레이어는 ' + data.aliveNames + '입니다.');
       log('현재는 마피아들끼리 서로 다른 닉네임을 지정할 경우 다수결에 의해 결정됩니다.');
+      log('죽일 플레이어를 아래와 같이 입력해주세요.');
       log('/닉네임');
     });
 
@@ -505,6 +508,11 @@ $(function() {
 
     socket.on('need wait', () => {
         log('마피아 지목 이후 최소 1분 이후 다시 지목 가능합니다.');
+    });
+
+    socket.on('alive users', (data)=>{
+      log('현재 살아있는 플레이어는 '+ data.names +' 입니다.');
+      log('현재 살아있는 마피아는 총 '+ data.mafiaCnt +' 명 입니다.');
     });
 
     socket.on('one only', () => {

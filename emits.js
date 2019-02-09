@@ -33,5 +33,6 @@ module.exports = {
     POLICE_WORK: 'police work',
     MAFIA_WORK: 'mafia work',
     MAFIA_FEEDBACK: 'mafia feedback',
-    ONE_ONLY: 'one only'
+    ONE_ONLY: 'one only',
+    ALIVE_USERS: 'alive users'
 };

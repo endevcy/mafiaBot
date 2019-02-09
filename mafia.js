@@ -424,6 +424,8 @@ function becomeDay(nightReport) {
             for (var i = 0; i < players.length; i++) {
                 io.sockets.connected[players[i].socketId].emit(emits.CITIZEN_WIN);
             }
+        }else{
+          noticeAliveUsers(currentMafiaCnt);
         }
     }
 }
@@ -544,10 +546,11 @@ function noticeDead(username, voteResult) {
             io.sockets.connected[players[i].socketId].emit(emits.CITIZEN_WIN);
         }
     } else {
+        var aliveUsers = getAliveUsers();
         becomeNight();
-        noticeDoctor();
-        noticePolice();
-        noticeMafia();
+        noticeDoctor(aliveUsers);
+        noticePolice(aliveUsers);
+        noticeMafia(aliveUsers);
     }
 }
 
@@ -584,6 +587,7 @@ function noticeAlive(username, voteResult) {
             result: voteResult
         });
     }
+    noticeAliveUsers(currentMafiaCnt);
 }
 
 function guessFail(guessResult) {
@@ -592,6 +596,7 @@ function guessFail(guessResult) {
             result: guessResult
         });
     }
+    noticeAliveUsers(currentMafiaCnt);
 }
 
 
@@ -641,26 +646,32 @@ function nightMafiaFeedback(mafia, pointedUser) {
     }
 }
 
-function noticeDoctor() {
+function noticeDoctor(aliveUsers) {
     for (var i = 0; i < players.length; i++) {
         if (players[i].role == roles.CONST_DOCTOR) {
-            io.sockets.connected[players[i].socketId].emit(emits.DOCTOR_WORK);
+            io.sockets.connected[players[i].socketId].emit(emits.DOCTOR_WORK,{
+              aliveNames:aliveUsers
+            });
         }
     }
 }
 
-function noticePolice() {
+function noticePolice(aliveUsers) {
     for (var i = 0; i < players.length; i++) {
         if (players[i].role == roles.CONST_POLICER) {
-            io.sockets.connected[players[i].socketId].emit(emits.POLICE_WORK);
+            io.sockets.connected[players[i].socketId].emit(emits.POLICE_WORK,{
+              aliveNames:aliveUsers
+            });
         }
     }
 }
 
-function noticeMafia() {
+function noticeMafia(aliveUsers) {
     for (var i = 0; i < players.length; i++) {
         if (players[i].role == roles.CONST_MAFIA) {
-            io.sockets.connected[players[i].socketId].emit(emits.MAFIA_WORK);
+            io.sockets.connected[players[i].socketId].emit(emits.MAFIA_WORK,{
+              aliveNames:aliveUsers
+            });
         }
     }
 }
@@ -683,4 +694,24 @@ function invalidVote(socket) {
 
 function invalidKill(socket) {
     socket.emit(emits.INVALID_KILL);
+}
+
+function getAliveUsers() {
+    var alives = [];
+    for (var i = 0; i < players.length; i++) {
+        if (players[i].isAlive) {
+            alives.push(players[i].name);
+        }
+    }
+    return alives.join();
+}
+
+function noticeAliveUsers(currentMafiaCnt) {
+    var aliveUsers = getAliveUsers();
+    for (var i = 0; i < players.length; i++) {
+        io.sockets.connected[players[i].socketId].emit(emits.ALIVE_USERS, {
+            names: aliveUsers,
+            mafiaCnt: currentMafiaCnt
+        });
+    }
 }
