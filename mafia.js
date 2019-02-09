@@ -80,9 +80,9 @@ io.on('connection', (socket) => {
 });
 
 
-/********
-functions
-********/
+/***********************
+business logic functions
+***********************/
 function handleDay(socket, data) {
     if (data.startsWith('/') && data.endsWith('/')) {
 
@@ -90,68 +90,91 @@ function handleDay(socket, data) {
             socket.emit(emits.NEED_WAIT);
         } else {
             var pointedUser = data.substring(1, data.length - 1);
-            var user = getPlayer(socket.id);
-            var currentTime = new Date().getTime();
-            if (currentTime - user.pointTime > config.GUESS_WAIT_TIME * 1000) {
-                mafiaPointTarget = pointedUser;
-                user.pointTime = currentTime;
-                mafiaPointReceived.set(config.CONST_GUESS_CITIZEN, 0);
-                mafiaPointReceived.set(config.CONST_GUESS_MAFIA, 0);
-                pointMafia(pointedUser);
+            if (!validateUserName(pointedUser)) {
+                nonExistUser(socket);
             } else {
-                socket.emit(emits.NEED_WAIT);
+                var user = getPlayer(socket.id);
+                var currentTime = new Date().getTime();
+                if (currentTime - user.pointTime > config.GUESS_WAIT_TIME * 1000) {
+                    mafiaPointTarget = pointedUser;
+                    user.pointTime = currentTime;
+                    mafiaPointReceived.set(config.CONST_GUESS_CITIZEN, 0);
+                    mafiaPointReceived.set(config.CONST_GUESS_MAFIA, 0);
+                    pointMafia(user.name, pointedUser);
+                } else {
+                    socket.emit(emits.NEED_WAIT);
+                }
             }
         }
     } else if (data.startsWith('/') && mafiaPoint && !thumbUpDown) {
+        var user = getPlayer(socket.id);
         var result = data.substring(1);
-        if (typeof mafiaPointReceived.get(result) !== 'undefined') {
-            mafiaPointReceived.set(result, mafiaPointReceived.get(result) + 1);
+        if (!validateResult(result)) {
+            invalidVote(socket);
         } else {
-            mafiaPointReceived.set(result, 1);
-        }
 
-        mafiaPointCnt++;
-        if (mafiaPointCnt === aliveUser) {
+            if (typeof mafiaPointReceived.get(result) !== 'undefined') {
+                mafiaPointReceived.set(result, mafiaPointReceived.get(result) + 1);
+            } else {
+                mafiaPointReceived.set(result, 1);
+            }
 
+            mafiaPointCnt++;
             var citizenGuessCnt = mafiaPointReceived.get(config.CONST_GUESS_CITIZEN);
             var mafiaGuessCnt = mafiaPointReceived.get(config.CONST_GUESS_MAFIA);
+            voteFeedback(user.name, mafiaPointTarget, result, citizenGuessCnt, mafiaGuessCnt);
 
-            var guessResult = {
-                mafiaResult: mafiaGuessCnt,
-                citizenResult: citizenGuessCnt
-            };
-            if (mafiaGuessCnt >= citizenGuessCnt) {
-                lastSpeak(mafiaPointTarget, guessResult);
-                mafiaPointCnt = 0;
-            } else {
-                mafiaPoint = false;
-                mafiaPointTarget = '';
-                guessFail(guessResult);
+            if (mafiaPointCnt === aliveUser) {
+
+                var citizenGuessCnt = mafiaPointReceived.get(config.CONST_GUESS_CITIZEN);
+                var mafiaGuessCnt = mafiaPointReceived.get(config.CONST_GUESS_MAFIA);
+
+                var guessResult = {
+                    mafiaResult: mafiaGuessCnt,
+                    citizenResult: citizenGuessCnt
+                };
+                if (mafiaGuessCnt >= citizenGuessCnt) {
+                    lastSpeak(mafiaPointTarget, guessResult);
+                    mafiaPointCnt = 0;
+                } else {
+                    mafiaPoint = false;
+                    mafiaPointTarget = '';
+                    guessFail(guessResult);
+                }
             }
         }
     } else if (data.startsWith('/') && thumbUpDown) {
+        var user = getPlayer(socket.id);
         var result = data.substring(1);
-        thumbUpDownReceived.set(result, thumbUpDownReceived.get(result) + 1);
-        thumbUpDownCnt++;
-        if (thumbUpDownCnt === aliveUser) {
+        if (!validateKill(result)) {
+            invalidKill(socket);
+        } else {
+            thumbUpDownReceived.set(result, thumbUpDownReceived.get(result) + 1);
+            thumbUpDownCnt++;
+
 
             var liveCnt = thumbUpDownReceived.get(config.CONST_LIVE);
             var killCnt = thumbUpDownReceived.get(config.CONST_KILL);
 
-            var voteResult = {
-                liveResult: liveCnt,
-                killResult: killCnt
-            };
-            if (killCnt > liveCnt) {
-                noticeDead(thumbUpDownTarget, voteResult);
-            } else {
-                noticeAlive(thumbUpDownTarget, voteResult);
+            killFeedback(user.name, thumbUpDownTarget, result, liveCnt, killCnt);
+
+            if (thumbUpDownCnt === aliveUser) {
+
+                var voteResult = {
+                    liveResult: liveCnt,
+                    killResult: killCnt
+                };
+                if (killCnt > liveCnt) {
+                    noticeDead(thumbUpDownTarget, voteResult);
+                } else {
+                    noticeAlive(thumbUpDownTarget, voteResult);
+                }
+                thumbUpDown = false;
+                mafiaPoint = false;
+                thumbUpDownCnt = 0;
+                thumbUpDownTarget = '';
+                mafiaPointTarget = '';
             }
-            thumbUpDown = false;
-            mafiaPoint = false;
-            thumbUpDownCnt = 0;
-            thumbUpDownTarget = '';
-            mafiaPointTarget = '';
         }
     } else {
         socket.broadcast.emit(emits.NEW_MESSAGE, {
@@ -167,65 +190,78 @@ function handleNight(socket, data) {
     } else if (getRole(socket.username) == roles.CONST_DOCTOR) {
         if (doctorChance) {
             if (data.startsWith('/')) {
-                doctorSaveUser = data.substring(1);
-                doctorChance = false;
+                var protectedUser = data.substring(1);
+                if (!validateUserName(protectedUser)) {
+                    nonExistUser(socket);
+                } else {
+                    doctorSaveUser = protectedUser;
+                    doctorChance = false;
+                    doctorConfirm(socket, doctorSaveUser);
+                }
             } else {
                 nightSleep(socket);
             }
         } else {
-            ;
+            oneOnlyAtNight(socket);
         }
     } else if (getRole(socket.username) == roles.CONST_POLICER) {
         if (policeChance) {
             if (data.startsWith('/')) {
                 var policeCheckUser = data.substring(1);
-                var policeCheckUserRole = '시민';
-
-                if (getRole(policeCheckUser) == roles.CONST_MAFIA) {
-                    policeCheckUserRole = '마피아';
+                if (!validateUserName(policeCheckUser)) {
+                    nonExistUser(socket);
+                } else {
+                    var policeCheckUserRole = '시민';
+                    if (getRole(policeCheckUser) == roles.CONST_MAFIA) {
+                        policeCheckUserRole = '마피아';
+                    }
+                    policeChance = false;
+                    policeConfirm(socket, policeCheckUserRole);
                 }
-                policeChance = false;
-                policeConfirm(socket, policeCheckUserRole);
             } else {
                 nightSleep(socket);
             }
         } else {
-            ;
+            oneOnlyAtNight(socket);
         }
     } else {
         if (data.startsWith('/')) {
             if (mafiaKill) {
                 var pointedUser = data.substring(1);
 
-                if (typeof mafiaKillReceived.get(pointedUser) !== 'undefined') {
-                    mafiaKillReceived.set(pointedUser, mafiaKillReceived.get(pointedUser) + 1);
+                if (!validateUserName(pointedUser)) {
+                    nonExistUser(socket);
                 } else {
-                    mafiaKillReceived.set(pointedUser, 1);
-                }
-
-                mafiaKillCnt++;
-                var mafiaKillingUser;
-                if (mafiaKillCnt === currentMafiaCnt) {
-                    var maxPoint = 0;
-                    for (var [key, value] of mafiaKillReceived) {
-                        if (value > maxPoint) {
-                            mafiaKillingUser = key;
-                        }
-                    }
-
-                    mafiaKill = false;
-                    var nightReport;
-                    if (mafiaKillingUser == doctorSaveUser) {
-                        nightReport = {
-                            isSomeoneDead: false
-                        };
+                    if (typeof mafiaKillReceived.get(pointedUser) !== 'undefined') {
+                        mafiaKillReceived.set(pointedUser, mafiaKillReceived.get(pointedUser) + 1);
                     } else {
-                        nightReport = {
-                            isSomeoneDead: true,
-                            who: mafiaKillingUser
-                        };
+                        mafiaKillReceived.set(pointedUser, 1);
                     }
-                    becomeDay(nightReport);
+                    mafiaKillCnt++;
+
+                    nightMafiaFeedback(socket.username, pointedUser);
+                    var mafiaKillingUser;
+                    if (mafiaKillCnt === currentMafiaCnt) {
+                        var maxPoint = 0;
+                        for (var [key, value] of mafiaKillReceived) {
+                            if (value > maxPoint) {
+                                mafiaKillingUser = key;
+                            }
+                        }
+                        mafiaKill = false;
+                        var nightReport;
+                        if (mafiaKillingUser == doctorSaveUser) {
+                            nightReport = {
+                                isSomeoneDead: false
+                            };
+                        } else {
+                            nightReport = {
+                                isSomeoneDead: true,
+                                who: mafiaKillingUser
+                            };
+                        }
+                        becomeDay(nightReport);
+                    }
                 }
             }
         } else {
@@ -235,8 +271,8 @@ function handleNight(socket, data) {
 }
 
 function userLeft(socket) {
-  var currentTime = new Date().getTime();
-    console.log('disconnect  [' + socket.id + '] : '+currentTime);
+    var currentTime = new Date().getTime();
+    console.log('disconnect  [' + socket.id + '] : ' + currentTime);
     socket.broadcast.emit(emits.USER_LEFT, {
         username: socket.username,
         numUsers: numUsers
@@ -244,8 +280,8 @@ function userLeft(socket) {
 }
 
 function userJoined(socket, username) {
-  var currentTime = new Date().getTime();
-    console.log('add user from  [' + socket.id + '] : '+currentTime);
+    var currentTime = new Date().getTime();
+    console.log('add user from  [' + socket.id + '] : ' + currentTime);
     var player = {
         role: -1,
         socketId: socket.id,
@@ -388,6 +424,8 @@ function becomeDay(nightReport) {
             for (var i = 0; i < players.length; i++) {
                 io.sockets.connected[players[i].socketId].emit(emits.CITIZEN_WIN);
             }
+        }else{
+          noticeAliveUsers(currentMafiaCnt);
         }
     }
 }
@@ -418,15 +456,42 @@ function lastSpeak(mafiaPointTarget, guessResult) {
     }, config.LAST_SPEAK_TIME * 1000);
 }
 
-function pointMafia(pointedUser) {
+function pointMafia(pointer, pointedUser) {
     mafiaPoint = true;
     mafiaPointCnt = 0;
     for (var i = 0; i < players.length; i++) {
         io.sockets.connected[players[i].socketId].emit(emits.POINT_MAFIA, {
+            pointerName: pointer,
             pointedUserName: pointedUser
         });
     }
 }
+
+function validateUserName(username) {
+    for (var i = 0; i < players.length; i++) {
+        if (players[i].name == username && players[i].isAlive) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function validateResult(result) {
+    if (result == config.CONST_GUESS_CITIZEN || result == config.CONST_GUESS_MAFIA) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+function validateKill(result) {
+    if (result == config.CONST_KILL || result == config.CONST_LIVE) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
 
 function getPlayer(socketId) {
     for (var i = 0; i < players.length; i++) {
@@ -481,7 +546,37 @@ function noticeDead(username, voteResult) {
             io.sockets.connected[players[i].socketId].emit(emits.CITIZEN_WIN);
         }
     } else {
+        var aliveUsers = getAliveUsers();
         becomeNight();
+        noticeDoctor(aliveUsers);
+        noticePolice(aliveUsers);
+        noticeMafia(aliveUsers);
+    }
+}
+
+
+
+function voteFeedback(voter, pointedUser, vote, citizenGuessCnt, mafiaGuessCnt) {
+    for (var i = 0; i < players.length; i++) {
+        io.sockets.connected[players[i].socketId].emit(emits.VOTE_FEEDBACK, {
+            voterName: voter,
+            pointedUserName: pointedUser,
+            vote: vote,
+            currentCitizenGuess: citizenGuessCnt,
+            currentMafiaGuess: mafiaGuessCnt
+        });
+    }
+}
+
+function killFeedback(voter, thumbUpDownTarget, result, liveCnt, killCnt) {
+    for (var i = 0; i < players.length; i++) {
+        io.sockets.connected[players[i].socketId].emit(emits.KILL_FEEDBACK, {
+            voterName: voter,
+            pointedUserName: thumbUpDownTarget,
+            vote: result,
+            currentLive: liveCnt,
+            currentKill: killCnt
+        });
     }
 }
 
@@ -492,6 +587,7 @@ function noticeAlive(username, voteResult) {
             result: voteResult
         });
     }
+    noticeAliveUsers(currentMafiaCnt);
 }
 
 function guessFail(guessResult) {
@@ -500,6 +596,7 @@ function guessFail(guessResult) {
             result: guessResult
         });
     }
+    noticeAliveUsers(currentMafiaCnt);
 }
 
 
@@ -526,12 +623,95 @@ function nightSleep(socket) {
     socket.emit(emits.NOT_ALLOWED);
 }
 
+function doctorConfirm(socket, protectedUser) {
+    socket.emit(emits.DOCTOR_CONFIRM, {
+        protectedName: protectedUser
+    });
+}
+
 function policeConfirm(socket, policeCheckUserRole) {
     socket.emit(emits.POLICE_CONFIRM, {
         role: policeCheckUserRole
     });
 }
 
+function nightMafiaFeedback(mafia, pointedUser) {
+    for (var i = 0; i < players.length; i++) {
+        if (players[i].role == roles.CONST_MAFIA) {
+            io.sockets.connected[players[i].socketId].emit(emits.MAFIA_FEEDBACK, {
+                mafiaName: mafia,
+                pointedName: pointedUser
+            });
+        }
+    }
+}
+
+function noticeDoctor(aliveUsers) {
+    for (var i = 0; i < players.length; i++) {
+        if (players[i].role == roles.CONST_DOCTOR) {
+            io.sockets.connected[players[i].socketId].emit(emits.DOCTOR_WORK,{
+              aliveNames:aliveUsers
+            });
+        }
+    }
+}
+
+function noticePolice(aliveUsers) {
+    for (var i = 0; i < players.length; i++) {
+        if (players[i].role == roles.CONST_POLICER) {
+            io.sockets.connected[players[i].socketId].emit(emits.POLICE_WORK,{
+              aliveNames:aliveUsers
+            });
+        }
+    }
+}
+
+function noticeMafia(aliveUsers) {
+    for (var i = 0; i < players.length; i++) {
+        if (players[i].role == roles.CONST_MAFIA) {
+            io.sockets.connected[players[i].socketId].emit(emits.MAFIA_WORK,{
+              aliveNames:aliveUsers
+            });
+        }
+    }
+}
+
+function oneOnlyAtNight(socket) {
+    socket.emit(emits.ONE_ONLY);
+}
+
 function sendHelpManual(socket) {
     socket.emit(emits.HELP_MANUAL);
+}
+
+function nonExistUser(socket) {
+    socket.emit(emits.USER_NON_EXIST);
+}
+
+function invalidVote(socket) {
+    socket.emit(emits.INVALID_VOTE);
+}
+
+function invalidKill(socket) {
+    socket.emit(emits.INVALID_KILL);
+}
+
+function getAliveUsers() {
+    var alives = [];
+    for (var i = 0; i < players.length; i++) {
+        if (players[i].isAlive) {
+            alives.push(players[i].name);
+        }
+    }
+    return alives.join();
+}
+
+function noticeAliveUsers(currentMafiaCnt) {
+    var aliveUsers = getAliveUsers();
+    for (var i = 0; i < players.length; i++) {
+        io.sockets.connected[players[i].socketId].emit(emits.ALIVE_USERS, {
+            names: aliveUsers,
+            mafiaCnt: currentMafiaCnt
+        });
+    }
 }
