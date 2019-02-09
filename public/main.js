@@ -352,7 +352,10 @@ $(function() {
 
 
     socket.on('point mafia', (data) => {
-        log(data.pointedUserName + ' 님이 마피아라고 생각하는지 알려주세요.');
+        log(data.pointerName + ' 님께서 ' + data.pointedUserName + ' 님을 마피아로 지목하였습니다. ' + data.pointedUserName + ' 님을 어떻게 생각하는지 알려주세요');
+        log('다수결에 부쳐 과반 이상 마피아라고 생각하면 최후의 변론을 하게 됩니다.');
+        log('/1 : 마피아라고 생각함');
+        log('/2 : 마피아가 아니라고 생각함');
     });
 
 

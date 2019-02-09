@@ -97,7 +97,7 @@ function handleDay(socket, data) {
                 user.pointTime = currentTime;
                 mafiaPointReceived.set(config.CONST_GUESS_CITIZEN, 0);
                 mafiaPointReceived.set(config.CONST_GUESS_MAFIA, 0);
-                pointMafia(pointedUser);
+                pointMafia(socket.username, pointedUser);
             } else {
                 socket.emit(emits.NEED_WAIT);
             }
@@ -418,11 +418,12 @@ function lastSpeak(mafiaPointTarget, guessResult) {
     }, config.LAST_SPEAK_TIME * 1000);
 }
 
-function pointMafia(pointedUser) {
+function pointMafia(pointer, pointedUser) {
     mafiaPoint = true;
     mafiaPointCnt = 0;
     for (var i = 0; i < players.length; i++) {
         io.sockets.connected[players[i].socketId].emit(emits.POINT_MAFIA, {
+            pointerName: pointer,
             pointedUserName: pointedUser
         });
     }
