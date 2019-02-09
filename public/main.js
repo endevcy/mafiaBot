@@ -1,4 +1,9 @@
-var config = require('../config.js');
+
+
+let CONST_GUESS_CITIZEN = '1';
+let CONST_GUESS_MAFIA = '2';
+let CONST_LIVE = '1';
+let CONST_KILL = '2';
 
 //role
 let CONST_MAFIA = 0;
@@ -363,7 +368,7 @@ $(function() {
 
     socket.on('vote feedback', (data) => {
         var voted = '';
-        if(data.vote==config.CONST_GUESS_CITIZEN){
+        if(data.vote==CONST_GUESS_CITIZEN){
           voted = '마피아가 아니라고';
         }else{
           voted = '마피아라고';
@@ -376,7 +381,7 @@ $(function() {
 
     socket.on('kill feedback', (data) => {
         var voted = '';
-        if(data.vote==config.CONST_KILL){
+        if(data.vote==CONST_KILL){
           voted = '죽이는데';
         }else{
           voted = '살리는데';
