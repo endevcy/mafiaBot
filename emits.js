@@ -22,6 +22,7 @@ module.exports = {
     STATUS: 'status',
     NOT_ALLOWED: 'not allowed',
     POLICE_CONFIRM: 'police confirm',
+    DOCTOR_CONFIRM: 'doctor confirm',
     HELP_MANUAL: 'help  manual',
     USER_NON_EXIST: 'user nonexist',
     VOTE_FEEDBACK: 'vote feedback',
@@ -30,5 +31,7 @@ module.exports = {
     INVALID_KILL: 'invalid kill',
     DOCTOR_WORK: 'doctor work',
     POLICE_WORK: 'police work',
-    MAFIA_WORK: 'mafia work'
+    MAFIA_WORK: 'mafia work',
+    MAFIA_FEEDBACK: 'mafia feedback',
+    ONE_ONLY: 'one only'
 };

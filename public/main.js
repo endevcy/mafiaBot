@@ -437,7 +437,7 @@ $(function() {
     });
 
     socket.on('user nonexist', () => {
-        log('존재하지 않는 사용자 입니다.');
+        log('존재하지 않거나 이미 죽은 사용자 입니다.');
     });
 
     socket.on('invalid vote', () => {
@@ -486,9 +486,17 @@ $(function() {
         log('밤에는 대화를 할 수 없습니다.');
     });
 
+    socket.on('doctor confirm', (data) => {
+        log(data.protectedName + ' 님을 살리기로 지목하였습니다.');
+    });
 
     socket.on('police confirm', (data) => {
         log('그 사람은 ' + data.role + ' 입니다.');
+    });
+
+
+    socket.on('mafia feedback', (data) => {
+        log('마피아 ' + data.mafiaName + '님은 '+ data.pointedName+' 님을 죽이길 원합니다.');
     });
 
     socket.on('disconnect', () => {
@@ -497,6 +505,10 @@ $(function() {
 
     socket.on('need wait', () => {
         log('마피아 지목 이후 최소 1분 이후 다시 지목 가능합니다.');
+    });
+
+    socket.on('one only', () => {
+        log('한 밤동안 의사는 한명만 살리고, 경찰은 한명만 확인할 수 있습니다.');
     });
 
     socket.on('reconnect', () => {
